@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Manage All Lost & Found</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .type-lost {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .type-found {
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        .btn-update {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        select {
+            padding: 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <i class="fa fa-mortar-board"></i>
+        <h1>STUDENT MANAGEMENT SYSTEM</h1>
+    </nav>
+
+    <div class="vertical-navbar">
+        <ul>
+            <li><a
+                    th:href="${session.user.role.name == 'ROLE_ADMIN' ? '/admin/adminPanel' : '/teacher/' + session.user.id + '/courses'}"><i
+                        class="fa fa-home"></i><span>Dashboard</span></a></li>
+            <li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn"></i><span>Bullying Reports</span></a></li>
+            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost & Found Items</span></a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h3>Manage All Lost & Found Reports</h3>
+        <hr>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Reported By</th>
+                    <th>Date Reported</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${items}">
+                    <td th:text="${item.type}" th:class="${item.type == 'LOST' ? 'type-lost' : 'type-found'}"></td>
+                    <td th:text="${item.itemName}"></td>
+                    <td th:text="${item.category}"></td>
+                    <td th:text="${item.reportedBy.userName}"></td>
+                    <td th:text="${item.dateReported}"></td>
+                    <td>
+                        <form th:action="@{/lostfound/updateStatus}" method="POST">
+                            <input type="hidden" name="id" th:value="${item.id}">
+                            <select name="status">
+                                <option value="PENDING" th:selected="${item.status == 'PENDING'}">PENDING</option>
+                                <option value="MATCHED" th:selected="${item.status == 'MATCHED'}">MATCHED</option>
+                                <option value="CLAIMED" th:selected="${item.status == 'CLAIMED'}">CLAIMED</option>
+                            </select>
+                            <button type="submit" class="btn-update">Update</button>
+                        </form>
+                    </td>
+                    <td>
+                        <!-- Add details view if needed later -->
+                        <span th:text="${item.location}"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

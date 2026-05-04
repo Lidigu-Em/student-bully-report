@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Edit Bullying Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        textarea,
+        input[type="text"],
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <i class="fa fa-mortar-board"></i>
+        <h1>STUDENT MANAGEMENT SYSTEM</h1>
+    </nav>
+
+    <div class="container">
+        <h3>Edit Bullying Report</h3>
+        <hr>
+        <form th:action="@{/reports/update}" th:object="${report}" method="POST">
+            <input type="hidden" th:field="*{id}" />
+            <div class="form-group">
+                <label>Description of Incident:</label>
+                <textarea th:field="*{description}" rows="5" required
+                    placeholder="Describe what happened..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Bully Details (Name/Group):</label>
+                <input type="text" th:field="*{bullyDetails}" placeholder="Who was involved?">
+            </div>
+            <div class="form-group">
+                <label>Date/Time of Incident:</label>
+                <input type="datetime-local" th:field="*{incidentDate}" required>
+            </div>
+            <div class="form-group">
+                <label>Location (Optional):</label>
+                <input type="text" th:field="*{location}" placeholder="Where did it happen?">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" th:field="*{anonymous}"> Report Anonymously
+                </label>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn">Update Report</button>
+                <a th:href="@{/reports/my}" class="btn" style="background-color: #f44336;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Report Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .detail-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .comment-box {
+            border-left: 4px solid #4CAF50;
+            padding: 10px;
+            background-color: #fff;
+            margin-bottom: 10px;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-meta {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .status-PENDING {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .status-UNDER_REVIEW {
+            color: blue;
+            font-weight: bold;
+        }
+
+        .status-RESOLVED {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <i class="fa fa-mortar-board"></i>
+        <h1>STUDENT MANAGEMENT SYSTEM</h1>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>Bullying Report Details</h3>
+            <a th:href="@{/reports/my}" class="btn" style="background-color: #333;">Back to List</a>
+        </div>
+        <hr>
+
+        <div class="detail-box">
+            <p><span class="label">Status:</span> <span th:class="'status-' + ${report.status}"
+                    th:text="${report.status}"></span></p>
+            <p><span class="label">Date Reported:</span> <span th:text="${report.createdAt}"></span></p>
+            <p><span class="label">Incident Date:</span> <span th:text="${report.incidentDate}"></span></p>
+            <p><span class="label">Location:</span> <span
+                    th:text="${report.location != null && !report.location.isEmpty() ? report.location : 'N/A'}"></span>
+            </p>
+            <p><span class="label">Anonymous:</span> <span th:text="${report.anonymous ? 'Yes' : 'No'}"></span></p>
+            <hr>
+            <p><span class="label">Description:</span></p>
+            <p th:text="${report.description}"></p>
+            <p><span class="label">Bully Details:</span></p>
+            <p th:text="${report.bullyDetails}"></p>
+        </div>
+
+        <h4>Comments from Administration</h4>
+        <div th:if="${#lists.isEmpty(comments)}">
+            <p>No comments yet.</p>
+        </div>
+        <div th:each="comment : ${comments}" class="comment-box">
+            <p th:text="${comment.comment}"></p>
+            <div class="comment-meta">
+                By <span th:text="${comment.author.userName}"></span> on <span th:text="${comment.createdAt}"></span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

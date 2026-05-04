@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>My Reports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .status-PENDING {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .status-UNDER_REVIEW {
+            color: blue;
+            font-weight: bold;
+        }
+
+        .status-RESOLVED {
+            color: green;
+            font-weight: bold;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-sml {
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 12px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <i class="fa fa-mortar-board"></i>
+        <h1>STUDENT MANAGEMENT SYSTEM</h1>
+    </nav>
+
+    <div class="container">
+        <h3>My Bullying Reports</h3>
+        <hr>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a th:href="@{/reports/create}" class="btn">Submit New Report</a>
+            <a th:href="@{/student/{id}/courses(id=${user.id})}" class="btn" style="background-color: #333;">Back to
+                Dashboard</a>
+        </div>
+        <br><br>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date Reported</th>
+                    <th>Incident Date</th>
+                    <th>Bully Details</th>
+                    <th>Status</th>
+                    <th>Anonymous</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="report : ${reports}">
+                    <td th:text="${report.createdAt}"></td>
+                    <td th:text="${report.incidentDate}"></td>
+                    <td th:text="${report.bullyDetails}"></td>
+                    <td>
+                        <span th:class="'status-' + ${report.status}" th:text="${report.status}"></span>
+                    </td>
+                    <td th:text="${report.anonymous ? 'Yes' : 'No'}"></td>
+                    <td>
+                        <a th:href="@{/reports/my/view/{id}(id=${report.id})}" class="btn-sml">View</a>
+
+                        <a th:if="${report.status == 'PENDING'}" th:href="@{/reports/edit/{id}(id=${report.id})}"
+                            class="btn-sml" style="background-color: #2196F3;">Edit</a>
+
+                        <form th:action="@{/reports/revoke/{id}(id=${report.id})}" method="POST"
+                            style="display:inline;">
+                            <button type="submit" class="btn-sml" style="background-color: #f44336;"
+                                onclick="if (!(confirm('Are you sure you want to revoke this report?'))) return false">Revoke</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

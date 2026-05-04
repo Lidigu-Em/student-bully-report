@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Bullying Reports Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/admin-panel.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-PENDING {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-UNDER_REVIEW {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .status-RESOLVED {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .btn-view {
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <i class="fa fa-mortar-board"></i>
+        <h1>STUDENT MANAGEMENT SYSTEM</h1>
+    </nav>
+
+    <div class="vertical-navbar">
+        <ul>
+            <li><a
+                    th:href="${session.user.role.name == 'ROLE_ADMIN' ? '/admin/adminPanel' : '/teacher/' + session.user.id + '/courses'}"><i
+                        class="fa fa-home"></i><span>Dashboard</span></a></li>
+            <li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn"></i><span>Bullying Reports</span></a></li>
+            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost & Found Items</span></a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h3>Bullying Reports Management</h3>
+        <hr>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Reported By</th>
+                    <th>Date Reported</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="report : ${reports}">
+                    <td th:text="${report.id}"></td>
+                    <td
+                        th:text="${report.anonymous ? 'Anonymous' : (report.reportedBy != null ? report.reportedBy.userName : 'Unknown')}">
+                    </td>
+                    <td th:text="${report.createdAt}"></td>
+                    <td>
+                        <span th:class="'status-badge status-' + ${report.status}" th:text="${report.status}"></span>
+                    </td>
+                    <td>
+                        <a th:href="@{/reports/view/{id}(id=${report.id})}" class="btn-view">Details</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

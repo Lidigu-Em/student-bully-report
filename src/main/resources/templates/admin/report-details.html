@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Report Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/admin-panel.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        .details-box {
+            background: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .comment-box {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .comment {
+            background: #eee;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .status-form {
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-resolve {
+            background-color: #28a745;
+        }
+
+        .btn-review {
+            background-color: #007bff;
+        }
+
+        .btn-comment {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="vertical-navbar">
+        <ul>
+            <li><a
+                    th:href="${session.user.role.name == 'ROLE_ADMIN' ? '/admin/adminPanel' : '/teacher/' + session.user.id + '/courses'}"><i
+                        class="fa fa-home"></i><span>Dashboard</span></a></li>
+            <li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn"></i><span>Bullying Reports</span></a></li>
+            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost & Found Items</span></a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <h3>Report Details #<span th:text="${report.id}"></span></h3>
+        <hr>
+        <div class="details-box">
+            <p><strong>Reported By:</strong> <span
+                    th:text="${report.anonymous ? 'Anonymous' : (report.reportedBy != null ? report.reportedBy.userName : 'Unknown')}"></span>
+            </p>
+            <p><strong>Date Reported:</strong> <span th:text="${report.createdAt}"></span></p>
+            <p><strong>Incident Date:</strong> <span th:text="${report.incidentDate}"></span></p>
+            <p><strong>Location:</strong> <span th:text="${report.location}"></span></p>
+            <p><strong>Status:</strong> <span th:text="${report.status}"></span></p>
+            <p><strong>Bully Details:</strong> <span th:text="${report.bullyDetails}"></span></p>
+            <p><strong>Description:</strong></p>
+            <p th:text="${report.description}"></p>
+        </div>
+
+        <div class="status-form">
+            <form th:action="@{/reports/{id}/status(id=${report.id})}" method="POST" style="display:inline;">
+                <input type="hidden" name="status" value="UNDER_REVIEW">
+                <button type="submit" class="btn btn-review">Mark Under Review</button>
+            </form>
+            <form th:action="@{/reports/{id}/status(id=${report.id})}" method="POST" style="display:inline;">
+                <input type="hidden" name="status" value="RESOLVED">
+                <button type="submit" class="btn btn-resolve">Mark Resolved</button>
+            </form>
+        </div>
+
+        <div class="comment-box">
+            <h4>Comments / Notes</h4>
+            <div th:each="comment : ${comments}" class="comment">
+                <p><strong th:text="${comment.author.userName}"></strong> <em th:text="${comment.createdAt}"></em></p>
+                <p th:text="${comment.comment}"></p>
+            </div>
+            <form th:action="@{/reports/{id}/comment(id=${report.id})}" method="POST">
+                <div class="form-group">
+                    <textarea name="comment" rows="3" style="width:100%;" placeholder="Add a comment..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-comment">Add Comment</button>
+            </form>
+        </div>
+        <br>
+        <a th:href="@{/reports/all}">Back to List</a>
+    </div>
+</body>
+
+</html>
