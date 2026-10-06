@@ -18,4 +18,8 @@ public interface LostFoundItemService {
     void deleteItem(Long id);
 
     void updateStatus(Long id, String status);
+
+    void addComment(Long itemId, String comment, String authorUsername);
+
+    List<com.lidigu.studentManagement.entity.LostFoundComment> findCommentsByItemId(Long itemId);
 }

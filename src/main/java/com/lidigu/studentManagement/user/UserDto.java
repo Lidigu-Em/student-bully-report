@@ -1,10 +1,10 @@
 package com.lidigu.studentManagement.user;
 
+import com.lidigu.studentManagement.entity.Role;
+
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import com.lidigu.studentManagement.entity.Role;
 
 
 public class UserDto {

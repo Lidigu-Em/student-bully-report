@@ -50,39 +50,24 @@ public class RegistrationController {
 
 	@PostMapping("/processRegistrationForm")
 	public String processRegistrationForm(@Valid @ModelAttribute("userDto") UserDto user,
-			BindingResult theBindingResult, @RequestParam(value = "role") String roleName, Model theModel) {
+			BindingResult theBindingResult, Model theModel) {
 		if (theBindingResult.hasErrors()) {
 			return "registration/registration-form";
 		}
 
-		if (roleName.equals("ROLE_STUDENT")) {
-			String userName = user.getUserName();
+		String userName = user.getUserName();
 
-			// if username already exists in db
-			if (studentService.findByStudentName(userName) != null) {
-				theModel.addAttribute("userDto", new UserDto());
-				theModel.addAttribute("registrationError", "User name already exists!");
-				return "registration/registration-form";
-			}
-
-			Role role = roleDao.findRoleByName(roleName);
-			user.setRole(role);
-			studentService.save(user); // save() method converts UserDto to Student and saves it in db
-		} else { // teacher role
-
-			String userName = user.getUserName();
-
-			// if username already exists in db
-			if (teacherService.findByTeacherName(userName) != null) {
-				theModel.addAttribute("userDto", new UserDto());
-				theModel.addAttribute("registrationError", "User name already exists!");
-				return "registration/registration-form";
-			}
-
-			Role role = roleDao.findRoleByName(roleName);
-			user.setRole(role);
-			teacherService.save(user);
+		// if username already exists in db
+		if (studentService.findByStudentName(userName) != null) {
+			theModel.addAttribute("userDto", new UserDto());
+			theModel.addAttribute("registrationError", "User name already exists!");
+			return "registration/registration-form";
 		}
+
+		// All self-registrations are students
+		Role role = roleDao.findRoleByName("ROLE_STUDENT");
+		user.setRole(role);
+		studentService.save(user);
 
 		return "redirect:/showLoginPage?registrationSuccess";
 	}

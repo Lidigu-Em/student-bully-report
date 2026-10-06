@@ -70,4 +70,22 @@ public class LostFoundItemServiceImpl implements LostFoundItemService {
     public void updateStatus(Long id, String status) {
         itemDao.updateStatus(id, status);
     }
+
+    @Override
+    @Transactional
+    public void addComment(Long itemId, String comment, String authorUsername) {
+        LostFoundItem item = itemDao.findById(itemId);
+        User author = userDao.findByUserName(authorUsername);
+        if (item != null && author != null) {
+            com.lidigu.studentManagement.entity.LostFoundComment itemComment =
+                    new com.lidigu.studentManagement.entity.LostFoundComment(comment, LocalDateTime.now(), item, author);
+            itemDao.addComment(itemComment);
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<com.lidigu.studentManagement.entity.LostFoundComment> findCommentsByItemId(Long itemId) {
+        return itemDao.findCommentsByItemId(itemId);
+    }
 }

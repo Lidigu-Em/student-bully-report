@@ -70,4 +70,20 @@ public class LostFoundItemDaoImpl implements LostFoundItemDao {
             session.update(item);
         }
     }
+
+    @Override
+    public void addComment(com.lidigu.studentManagement.entity.LostFoundComment comment) {
+        Session session = entityManager.unwrap(Session.class);
+        session.save(comment);
+    }
+
+    @Override
+    public List<com.lidigu.studentManagement.entity.LostFoundComment> findCommentsByItemId(Long itemId) {
+        Session session = entityManager.unwrap(Session.class);
+        return session.createQuery(
+                "from LostFoundComment where item.id = :itemId order by createdAt asc",
+                com.lidigu.studentManagement.entity.LostFoundComment.class)
+                .setParameter("itemId", itemId)
+                .getResultList();
+    }
 }

@@ -54,15 +54,8 @@
 		<p th:if="${#fields.hasErrors('email')}" class="error">Invalid email!</p>
 	</div>
 	
-	<div class="form-input-item">
-		User role:   
-		<select th:name="role">
-			<option th:value="'ROLE_STUDENT'" th:text="Student"></option>
-    		<option th:value="'ROLE_TEACHER'" th:text="Teacher"></option>
-		</select> 
-		
-	</div>
-	
+
+
 	 
 	
 	<button type="submit">Register</button>

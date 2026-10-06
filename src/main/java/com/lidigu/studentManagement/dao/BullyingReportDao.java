@@ -21,5 +21,9 @@ public interface BullyingReportDao {
 
     List<ReportComment> findCommentsByReportId(Long reportId);
 
+    List<ReportComment> findApprovedCommentsByReportId(Long reportId);
+
+    void approveComment(Long commentId);
+
     void deleteById(Long id);
 }

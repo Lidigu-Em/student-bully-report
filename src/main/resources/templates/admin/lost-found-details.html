@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Lost &amp; Found Item Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/admin-panel.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .details-box {
+            background: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .type-lost {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .type-found {
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-PENDING {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-MATCHED {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .status-CLAIMED {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .comment-section {
+            margin-top: 25px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .comment-box {
+            background: #fdfdfd;
+            border-left: 4px solid #2196F3;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .comment-box.teacher-comment {
+            border-left-color: #28a745;
+            background: #f6fff6;
+        }
+
+        .comment-box.admin-comment {
+            border-left-color: #6f42c1;
+            background: #faf7ff;
+        }
+
+        .comment-meta {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .role-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+            color: white;
+            margin-left: 6px;
+        }
+
+        .role-ROLE_TEACHER {
+            background-color: #28a745;
+        }
+
+        .role-ROLE_ADMIN {
+            background-color: #6f42c1;
+        }
+
+        .role-ROLE_STUDENT {
+            background-color: #17a2b8;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-comment {
+            background-color: #007bff;
+        }
+
+        .btn-back {
+            background-color: #555;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <i class="fa fa-mortar-board"></i>
+        <h1>STUDENT MANAGEMENT SYSTEM</h1>
+    </nav>
+
+    <div class="vertical-navbar" th:if="${!isStudent}">
+        <ul>
+            <li><a th:href="${isAdmin ? '/admin/adminPanel' : (session.user != null ? '/teacher/' + session.user.id + '/courses' : '/')}">
+                <i class="fa fa-home"></i><span>Dashboard</span></a></li>
+            <li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn"></i><span>Bullying Reports</span></a></li>
+            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost &amp; Found Items</span></a></li>
+        </ul>
+    </div>
+
+    <div class="container" th:style="${isStudent ? 'margin-top: 20px;' : 'margin-left: 200px; padding: 20px;'}">
+        <div>
+            <a th:if="${isStudent}" th:href="@{/lostfound/my}" class="btn btn-back">
+                <i class="fa fa-arrow-left"></i> Back to My Lost &amp; Found
+            </a>
+            <a th:if="${!isStudent}" th:href="@{/lostfound/all}" class="btn btn-back">
+                <i class="fa fa-arrow-left"></i> Back to All Items
+            </a>
+        </div>
+
+        <h3>Lost &amp; Found Details #<span th:text="${item.id}"></span></h3>
+        <hr>
+
+        <div class="details-box">
+            <p>
+                <strong>Type:</strong>
+                <span th:text="${item.type}" th:class="${item.type == 'LOST' ? 'type-lost' : 'type-found'}"></span>
+            </p>
+            <p><strong>Item Name:</strong> <span th:text="${item.itemName}"></span></p>
+            <p><strong>Category:</strong> <span th:text="${item.category}"></span></p>
+            <p><strong>Location:</strong> <span th:text="${item.location}"></span></p>
+            <p><strong>Reported By:</strong>
+                <span th:text="${item.reportedBy != null ? item.reportedBy.userName : 'Unknown'}"></span>
+            </p>
+            <p><strong>Date Reported:</strong> <span th:text="${item.dateReported}"></span></p>
+            <p>
+                <strong>Status:</strong>
+                <span th:class="'status-badge status-' + ${item.status}" th:text="${item.status}"></span>
+            </p>
+            <p><strong>Description:</strong></p>
+            <p th:text="${item.description != null ? item.description : 'No description provided.'}"></p>
+
+            <div th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}">
+                <strong>Image:</strong><br>
+                <img th:src="${item.imageUrl}" alt="Item Image" style="max-width: 300px; border-radius: 4px; margin-top: 5px;">
+            </div>
+
+            <!-- Status update option for Teacher/Admin -->
+            <div th:if="${!isStudent}" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                <form th:action="@{/lostfound/updateStatus}" method="POST" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="hidden" name="id" th:value="${item.id}">
+                    <label><strong>Change Status:</strong></label>
+                    <select name="status" style="padding: 6px; border-radius: 4px;">
+                        <option value="PENDING" th:selected="${item.status == 'PENDING'}">PENDING</option>
+                        <option value="MATCHED" th:selected="${item.status == 'MATCHED'}">MATCHED</option>
+                        <option value="CLAIMED" th:selected="${item.status == 'CLAIMED'}">CLAIMED</option>
+                    </select>
+                    <button type="submit" class="btn" style="background-color: #28a745;">Update Status</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Comments Section (Visible strictly on Teacher & Admin boards) -->
+        <div class="comment-section" th:if="${!isStudent}">
+            <h4><i class="fa fa-comments"></i> Teacher &amp; Staff Internal Notes</h4>
+
+            <div th:if="${comments.isEmpty()}" style="color: #777; margin-bottom: 15px;">
+                No comments or updates added yet.
+            </div>
+
+            <div th:each="comment : ${comments}"
+                 th:class="${comment.authorRole == 'ROLE_TEACHER' ? 'comment-box teacher-comment' : (comment.authorRole == 'ROLE_ADMIN' ? 'comment-box admin-comment' : 'comment-box')}">
+                <div class="comment-meta">
+                    <strong th:text="${comment.author != null ? comment.author.userName : 'Unknown'}"></strong>
+                    <span th:if="${comment.authorRole != null}"
+                          th:class="'role-badge role-' + ${comment.authorRole}"
+                          th:text="${comment.authorRole == 'ROLE_TEACHER' ? 'Teacher' : (comment.authorRole == 'ROLE_ADMIN' ? 'Admin' : 'Student')}"></span>
+                    &bull; <span th:text="${comment.createdAt}"></span>
+                </div>
+                <div th:text="${comment.comment}" style="white-space: pre-wrap;"></div>
+            </div>
+
+            <!-- Add Comment Form (for Teachers, Admins, and Students) -->
+            <div style="margin-top: 20px;">
+                <form th:action="@{/lostfound/{id}/comment(id=${item.id})}" method="POST">
+                    <div style="margin-bottom: 10px;">
+                        <textarea name="comment" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;"
+                                  th:placeholder="${isTeacher ? 'Add teacher update or note (e.g., Item safely stored in staff room, owner can collect)...' : 'Add a comment or note...'}"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-comment">
+                        <i class="fa fa-paper-plane"></i> Add Comment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

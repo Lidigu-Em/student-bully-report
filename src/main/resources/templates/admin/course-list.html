@@ -71,15 +71,17 @@
 		
 		<tbody>
 			<tr th:each="course : ${courses}">
-				<td th:text="${course.code}">
-				<td th:text="${course.name}">
-				<td th:text="${course.teacher.firstName + ' ' + course.teacher.lastName}">
+				<td th:text="${course.code}"></td>
+				<td th:text="${course.name}"></td>
+				<td th:text="${course.teacher != null ? course.teacher.firstName + ' ' + course.teacher.lastName : 'Unassigned'}"></td>
 				<td class="short-col">
 					<a class="button" th:href="@{/admin/courses/{courseId}/students(courseId=${course.id})}">
 					<i class="fa fa-eye"></i> <span>View</span></a>
+					<a class="button" style="background-color: #ff9800; color: white;" th:href="@{/admin/courses/edit/{courseId}(courseId=${course.id})}">
+					<i class="fa fa-pencil"></i> <span>Edit / Reassign</span></a>
 					<a class="button delete-button" th:href="@{/admin/courses/delete(courseId=${course.id})}"
 							onclick="if (!(confirm('Are you sure you want to delete?'))) return false">
-					<i class="fa fa-trash"></i><span>Delete<span></a>
+					<i class="fa fa-trash"></i><span>Delete</span></a>
 				</td>
 			</tr>
 				

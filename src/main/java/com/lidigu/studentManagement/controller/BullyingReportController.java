@@ -4,10 +4,15 @@ import com.lidigu.studentManagement.entity.BullyingReport;
 import com.lidigu.studentManagement.entity.ReportComment;
 import com.lidigu.studentManagement.entity.User;
 import com.lidigu.studentManagement.service.BullyingReportService;
+import com.lidigu.studentManagement.service.ReportExportService;
 import com.lidigu.studentManagement.dao.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,7 +30,28 @@ public class BullyingReportController {
     @Autowired
     private UserDao userDao;
 
-    // --- Student Views & APIs ---
+    @Autowired
+    private ReportExportService exportService;
+
+    // ----------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------
+
+    private boolean isAdmin(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals("ROLE_ADMIN"));
+    }
+
+    private boolean isTeacher(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals("ROLE_TEACHER"));
+    }
+
+    // ----------------------------------------------------------------
+    // Student — create & manage own reports
+    // ----------------------------------------------------------------
 
     @GetMapping("/create")
     public String showReportForm(Model model) {
@@ -57,14 +83,12 @@ public class BullyingReportController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         BullyingReport report = reportService.findById(id);
 
-        // Security check: ensure student owns the report
         if (report == null || !report.getReportedBy().getUserName().equals(auth.getName())) {
             return "redirect:/access-denied";
         }
 
-        List<ReportComment> comments = reportService.findCommentsByReportId(id);
+        // Students only see report details; comments are for teacher/admin board
         model.addAttribute("report", report);
-        model.addAttribute("comments", comments);
         return "student/student-report-details";
     }
 
@@ -73,16 +97,12 @@ public class BullyingReportController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         BullyingReport report = reportService.findById(id);
 
-        // Security check: ensure student owns the report and it's still PENDING
         if (report == null || !report.getReportedBy().getUserName().equals(auth.getName())) {
             return "redirect:/access-denied";
         }
-
         if (!"PENDING".equals(report.getStatus())) {
-            // Cannot edit if it's already being reviewed or resolved
             return "redirect:/reports/my";
         }
-
         model.addAttribute("report", report);
         return "student/report-edit-form";
     }
@@ -92,11 +112,9 @@ public class BullyingReportController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         BullyingReport existingReport = reportService.findById(report.getId());
 
-        // Security check
         if (existingReport == null || !existingReport.getReportedBy().getUserName().equals(auth.getName())) {
             return "redirect:/access-denied";
         }
-
         if (!"PENDING".equals(existingReport.getStatus())) {
             return "redirect:/reports/my";
         }
@@ -106,7 +124,6 @@ public class BullyingReportController {
         existingReport.setIncidentDate(report.getIncidentDate());
         existingReport.setLocation(report.getLocation());
         existingReport.setAnonymous(report.isAnonymous());
-
         reportService.saveReport(existingReport);
         return "redirect:/reports/my";
     }
@@ -116,16 +133,16 @@ public class BullyingReportController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         BullyingReport report = reportService.findById(id);
 
-        // Security check
         if (report == null || !report.getReportedBy().getUserName().equals(auth.getName())) {
             return "redirect:/access-denied";
         }
-
         reportService.deleteReport(id);
         return "redirect:/reports/my";
     }
 
-    // --- Admin/Teacher Views & APIs ---
+    // ----------------------------------------------------------------
+    // Admin & Teacher — view all reports list
+    // ----------------------------------------------------------------
 
     @GetMapping("/all")
     public String showAllReports(Model model) {
@@ -134,20 +151,43 @@ public class BullyingReportController {
         return "admin/admin-report-list";
     }
 
+    // ----------------------------------------------------------------
+    // Admin & Teacher — view a single report with full audit trail
+    // ----------------------------------------------------------------
+
     @GetMapping("/view/{id}")
     public String viewReport(@PathVariable("id") Long id, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         BullyingReport report = reportService.findById(id);
+        // Admin sees all comments (including pending); teacher too; student uses separate route
         List<ReportComment> comments = reportService.findCommentsByReportId(id);
         model.addAttribute("report", report);
         model.addAttribute("comments", comments);
+        model.addAttribute("isAdmin", isAdmin(auth));
+        model.addAttribute("isTeacher", isTeacher(auth));
         return "admin/report-details";
     }
 
+    // ----------------------------------------------------------------
+    // Status changes — role-aware
+    // ----------------------------------------------------------------
+
     @PostMapping("/{id}/status")
     public String updateStatus(@PathVariable("id") Long id, @RequestParam("status") String status) {
-        reportService.updateReportStatus(id, status);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (isAdmin(auth)) {
+            // Admin directly sets the status
+            reportService.updateReportStatus(id, status);
+        } else if (isTeacher(auth)) {
+            // Teacher proposes the status — needs admin approval
+            reportService.proposeStatusChange(id, status, auth.getName());
+        }
         return "redirect:/reports/view/" + id;
     }
+
+    // ----------------------------------------------------------------
+    // Comments — auto-approved for admin, pending for teacher
+    // ----------------------------------------------------------------
 
     @PostMapping("/{id}/comment")
     public String addComment(@PathVariable("id") Long id, @RequestParam("comment") String comment) {
@@ -156,7 +196,60 @@ public class BullyingReportController {
         return "redirect:/reports/view/" + id;
     }
 
-    // --- REST APIs (as requested) ---
+    // ----------------------------------------------------------------
+    // Admin — approve / reject teacher actions
+    // ----------------------------------------------------------------
+
+    @PostMapping("/{id}/approveAction")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String approveTeacherAction(@PathVariable("id") Long id) {
+        reportService.approveTeacherAction(id);
+        return "redirect:/reports/view/" + id;
+    }
+
+    @PostMapping("/{id}/rejectAction")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String rejectTeacherAction(@PathVariable("id") Long id) {
+        reportService.rejectTeacherAction(id);
+        return "redirect:/reports/view/" + id;
+    }
+
+    @PostMapping("/{id}/approveComment/{commentId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String approveComment(@PathVariable("id") Long id, @PathVariable("commentId") Long commentId) {
+        reportService.approveComment(commentId);
+        return "redirect:/reports/view/" + id;
+    }
+
+    // ----------------------------------------------------------------
+    // Export — PDF and Excel
+    // ----------------------------------------------------------------
+
+    @GetMapping("/export/excel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<byte[]> exportExcel() {
+        List<BullyingReport> reports = reportService.findAllReports();
+        byte[] data = exportService.exportToExcel(reports);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bullying-reports.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(data);
+    }
+
+    @GetMapping("/export/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<byte[]> exportPdf() {
+        List<BullyingReport> reports = reportService.findAllReports();
+        byte[] data = exportService.exportToPdf(reports);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bullying-reports.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(data);
+    }
+
+    // ----------------------------------------------------------------
+    // REST APIs (kept for backward compat)
+    // ----------------------------------------------------------------
 
     @PostMapping("/api/reports")
     @ResponseBody

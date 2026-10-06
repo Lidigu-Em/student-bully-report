@@ -4,8 +4,8 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "report_comment")
-public class ReportComment {
+@Table(name = "lost_found_comment")
+public class LostFoundComment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,33 +18,26 @@ public class ReportComment {
     private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "report_id")
-    private BullyingReport report;
+    @JoinColumn(name = "item_id")
+    private LostFoundItem item;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private User author;
 
-    @Column(name = "approved")
-    private boolean approved; // false until admin approves (for teacher comments)
-
     @Column(name = "author_role")
-    private String authorRole; // role name at time of comment (ROLE_TEACHER, ROLE_ADMIN, etc.)
+    private String authorRole;
 
-    public ReportComment() {
+    public LostFoundComment() {
     }
 
-    public ReportComment(String comment, LocalDateTime createdAt, BullyingReport report, User author) {
+    public LostFoundComment(String comment, LocalDateTime createdAt, LostFoundItem item, User author) {
         this.comment = comment;
         this.createdAt = createdAt;
-        this.report = report;
+        this.item = item;
         this.author = author;
-        // Admin comments are auto-approved; teacher comments need approval
         if (author != null && author.getRole() != null) {
             this.authorRole = author.getRole().getName();
-            this.approved = !"ROLE_TEACHER".equals(author.getRole().getName());
-        } else {
-            this.approved = true;
         }
     }
 
@@ -72,12 +65,12 @@ public class ReportComment {
         this.createdAt = createdAt;
     }
 
-    public BullyingReport getReport() {
-        return report;
+    public LostFoundItem getItem() {
+        return item;
     }
 
-    public void setReport(BullyingReport report) {
-        this.report = report;
+    public void setItem(LostFoundItem item) {
+        this.item = item;
     }
 
     public User getAuthor() {
@@ -86,14 +79,6 @@ public class ReportComment {
 
     public void setAuthor(User author) {
         this.author = author;
-    }
-
-    public boolean isApproved() {
-        return approved;
-    }
-
-    public void setApproved(boolean approved) {
-        this.approved = approved;
     }
 
     public String getAuthorRole() {

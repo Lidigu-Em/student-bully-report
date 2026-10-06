@@ -39,6 +39,13 @@ public class BullyingReport {
     @JoinColumn(name = "reported_by_id")
     private User reportedBy;
 
+    @Column(name = "proposed_status")
+    private String proposedStatus; // status proposed by teacher, awaiting admin approval
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proposed_by_id")
+    private User proposedBy; // teacher who proposed the status change
+
     public BullyingReport() {
     }
 
@@ -124,5 +131,21 @@ public class BullyingReport {
 
     public void setReportedBy(User reportedBy) {
         this.reportedBy = reportedBy;
+    }
+
+    public String getProposedStatus() {
+        return proposedStatus;
+    }
+
+    public void setProposedStatus(String proposedStatus) {
+        this.proposedStatus = proposedStatus;
+    }
+
+    public User getProposedBy() {
+        return proposedBy;
+    }
+
+    public void setProposedBy(User proposedBy) {
+        this.proposedBy = proposedBy;
     }
 }

@@ -21,6 +21,8 @@ import com.lidigu.studentManagement.entity.GradeDetails;
 import com.lidigu.studentManagement.entity.Student;
 import com.lidigu.studentManagement.entity.StudentCourseDetails;
 import com.lidigu.studentManagement.entity.Teacher;
+import com.lidigu.studentManagement.dao.RoleDao;
+import com.lidigu.studentManagement.user.UserDto;
 import com.lidigu.studentManagement.service.CourseService;
 import com.lidigu.studentManagement.service.GradeDetailsService;
 import com.lidigu.studentManagement.service.StudentCourseDetailsService;
@@ -41,21 +43,46 @@ public class AdminController {
 	@Autowired
 	private StudentService studentService;
 	
-	
 	@Autowired
 	private StudentCourseDetailsService studentCourseDetailsService;
 	
 	@Autowired
 	private GradeDetailsService gradeDetailsService;
+
+	@Autowired
+	private RoleDao roleDao;
 	
 	private int teacherDeleteErrorValue; //used for deleting teacher, 0 means the teacher has not any assigned courses, 1 means it has
 	
 	@GetMapping("/adminPanel")
 	public String showAdminPanel() {
-		
 		return "admin/admin-panel";
 	}
-	
+
+	// --- Admin creates a new teacher ---
+
+	@GetMapping("/addTeacher")
+	public String showAddTeacherForm(Model theModel) {
+		theModel.addAttribute("userDto", new UserDto());
+		return "admin/teacher-form";
+	}
+
+	@PostMapping("/saveTeacher")
+	public String saveTeacher(@Valid @ModelAttribute("userDto") UserDto userDto,
+			BindingResult theBindingResult, Model theModel) {
+		if (theBindingResult.hasErrors()) {
+			return "admin/teacher-form";
+		}
+		// check duplicate username
+		if (teacherService.findByTeacherName(userDto.getUserName()) != null) {
+			theModel.addAttribute("registrationError", "Username already exists!");
+			return "admin/teacher-form";
+		}
+		userDto.setRole(roleDao.findRoleByName("ROLE_TEACHER"));
+		teacherService.save(userDto);
+		return "redirect:/admin/teachers";
+	}
+
 	@GetMapping("/adminInfo")
 	public String showAdminInfo(Model theModel) {
 		int courseSize = courseService.findAllCourses().size();
@@ -170,6 +197,15 @@ public class AdminController {
 		
 		return "admin/course-form";
 	}
+
+	@GetMapping("/courses/edit/{courseId}")
+	public String editCourse(@PathVariable("courseId") int courseId, Model theModel) {
+		Course course = courseService.findCourseById(courseId);
+		List<Teacher> teachers = teacherService.findAllTeachers();
+		theModel.addAttribute("course", course);
+		theModel.addAttribute("teachers", teachers);
+		return "admin/course-form";
+	}
 	
 	@PostMapping("/saveCourse")
 	public String saveCourse(@Valid @ModelAttribute("course") Course theCourse, 
@@ -180,11 +216,47 @@ public class AdminController {
 			theModel.addAttribute("teachers", teachers);
 			return "admin/course-form";
 		}
+
+		Teacher teacher = teacherService.findByTeacherId(teacherId);
+		if (theCourse.getId() > 0) {
+			Course existingCourse = courseService.findCourseById(theCourse.getId());
+			existingCourse.setCode(theCourse.getCode());
+			existingCourse.setName(theCourse.getName());
+			existingCourse.setTeacher(teacher);
+			courseService.save(existingCourse);
+		} else {
+			theCourse.setTeacher(teacher);
+			courseService.save(theCourse);
+		}
 		
-		theCourse.setTeacher(teacherService.findByTeacherId(teacherId)); //setTeacher method also sets the teacher's course as this	
-		courseService.save(theCourse);
-		
-		return "redirect:/admin/adminPanel"; 
+		return "redirect:/admin/courses"; 
+	}
+
+	@GetMapping("/teachers/{teacherId}/courses")
+	public String manageTeacherCourses(@PathVariable("teacherId") int teacherId, Model theModel) {
+		Teacher teacher = teacherService.findByTeacherId(teacherId);
+		List<Course> allCourses = courseService.findAllCourses();
+		List<Course> otherCourses = new ArrayList<>();
+		for (Course c : allCourses) {
+			if (c.getTeacher() == null || c.getTeacher().getId() != teacherId) {
+				otherCourses.add(c);
+			}
+		}
+		theModel.addAttribute("teacher", teacher);
+		theModel.addAttribute("assignedCourses", teacher.getCourses());
+		theModel.addAttribute("availableCourses", otherCourses);
+		return "admin/teacher-course-management";
+	}
+
+	@PostMapping("/teachers/{teacherId}/assignCourse")
+	public String assignCourseToTeacher(@PathVariable("teacherId") int teacherId, @RequestParam("courseId") int courseId) {
+		Teacher teacher = teacherService.findByTeacherId(teacherId);
+		Course course = courseService.findCourseById(courseId);
+		if (teacher != null && course != null) {
+			course.setTeacher(teacher);
+			courseService.save(course);
+		}
+		return "redirect:/admin/teachers/" + teacherId + "/courses";
 	}
 	
 	@GetMapping("/courses")

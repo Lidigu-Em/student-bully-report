@@ -8,73 +8,49 @@
     <link rel="stylesheet" th:href="@{/css/admin/admin-panel.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-        .container {
-            padding: 20px;
-        }
-
-        .details-box {
-            background: #f9f9f9;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-
-        .comment-box {
-            margin-top: 20px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-        }
-
-        .comment {
-            background: #eee;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
-        .status-form {
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            color: white;
-        }
-
-        .btn-resolve {
-            background-color: #28a745;
-        }
-
-        .btn-review {
-            background-color: #007bff;
-        }
-
-        .btn-comment {
-            background-color: #6c757d;
-        }
+        .content { padding: 20px; }
+        .details-box { background:#f9f9f9; padding:20px; border:1px solid #ddd; border-radius:8px; }
+        .comment-box { margin-top:20px; border-top:1px solid #ddd; padding-top:20px; }
+        .comment { background:#eee; padding:10px; margin-bottom:10px; border-radius:4px; position:relative; }
+        .comment.pending { background:#fff3cd; border-left:4px solid #ffc107; }
+        .status-form { margin-top:20px; }
+        .btn { padding:10px 15px; border:none; border-radius:4px; cursor:pointer; color:white; text-decoration:none; display:inline-block; margin-right:5px; }
+        .btn-resolve { background-color:#28a745; }
+        .btn-review { background-color:#007bff; }
+        .btn-comment { background-color:#6c757d; }
+        .btn-approve { background-color:#28a745; }
+        .btn-reject { background-color:#dc3545; }
+        .btn-export { background-color:#17a2b8; }
+        .approval-box { background:#fff3cd; border:2px solid #ffc107; padding:15px; border-radius:8px; margin-top:20px; }
+        .badge { padding:3px 8px; border-radius:10px; font-size:0.8em; font-weight:bold; }
+        .badge-pending { background:#fff3cd; color:#856404; }
+        .badge-approved { background:#d4edda; color:#155724; }
     </style>
 </head>
 
 <body>
     <div class="vertical-navbar">
         <ul>
-            <li><a
-                    th:href="${session.user.role.name == 'ROLE_ADMIN' ? '/admin/adminPanel' : '/teacher/' + session.user.id + '/courses'}"><i
-                        class="fa fa-home"></i><span>Dashboard</span></a></li>
+            <li><a th:href="${isAdmin ? '/admin/adminPanel' : (session.user != null ? '/teacher/' + session.user.id + '/courses' : '/')}">
+                <i class="fa fa-home"></i><span>Dashboard</span></a></li>
             <li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn"></i><span>Bullying Reports</span></a></li>
-            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost & Found Items</span></a></li>
+            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost &amp; Found</span></a></li>
         </ul>
     </div>
 
     <div class="content">
         <h3>Report Details #<span th:text="${report.id}"></span></h3>
+
+        <!-- Export buttons -->
+        <div style="margin-bottom:15px;">
+            <a th:href="@{/reports/export/excel}" class="btn btn-export"><i class="fa fa-file-excel-o"></i> Export Excel</a>
+            <a th:href="@{/reports/export/pdf}" class="btn btn-export" style="background:#6f42c1;"><i class="fa fa-file-pdf-o"></i> Export PDF</a>
+        </div>
+
         <hr>
         <div class="details-box">
-            <p><strong>Reported By:</strong> <span
-                    th:text="${report.anonymous ? 'Anonymous' : (report.reportedBy != null ? report.reportedBy.userName : 'Unknown')}"></span>
+            <p><strong>Reported By:</strong>
+                <span th:text="${report.anonymous ? 'Anonymous' : (report.reportedBy != null ? report.reportedBy.firstName + ' ' + report.reportedBy.lastName + ' (' + report.reportedBy.userName + ')' : 'Unknown')}"></span>
             </p>
             <p><strong>Date Reported:</strong> <span th:text="${report.createdAt}"></span></p>
             <p><strong>Incident Date:</strong> <span th:text="${report.incidentDate}"></span></p>
@@ -85,28 +61,76 @@
             <p th:text="${report.description}"></p>
         </div>
 
-        <div class="status-form">
-            <form th:action="@{/reports/{id}/status(id=${report.id})}" method="POST" style="display:inline;">
-                <input type="hidden" name="status" value="UNDER_REVIEW">
-                <button type="submit" class="btn btn-review">Mark Under Review</button>
+        <!-- ============================================================ -->
+        <!-- ADMIN: Pending Teacher Action Approval Box                   -->
+        <!-- ============================================================ -->
+        <div class="approval-box" th:if="${isAdmin and report.proposedStatus != null}">
+            <h4><i class="fa fa-clock-o"></i> Teacher Action Awaiting Approval</h4>
+            <p><strong>Proposed by:</strong>
+                <span th:text="${report.proposedBy != null ? report.proposedBy.userName : 'Unknown'}"></span>
+            </p>
+            <p><strong>Proposed Status:</strong> <span th:text="${report.proposedStatus}"></span></p>
+            <form th:action="@{/reports/{id}/approveAction(id=${report.id})}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-approve"><i class="fa fa-check"></i> Approve Action</button>
             </form>
-            <form th:action="@{/reports/{id}/status(id=${report.id})}" method="POST" style="display:inline;">
-                <input type="hidden" name="status" value="RESOLVED">
-                <button type="submit" class="btn btn-resolve">Mark Resolved</button>
+            <form th:action="@{/reports/{id}/rejectAction(id=${report.id})}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-reject"><i class="fa fa-times"></i> Reject Action</button>
             </form>
         </div>
 
+        <!-- ============================================================ -->
+        <!-- STATUS CHANGE BUTTONS                                        -->
+        <!-- Admin: direct change  |  Teacher: propose change             -->
+        <!-- ============================================================ -->
+        <div class="status-form">
+            <form th:action="@{/reports/{id}/status(id=${report.id})}" method="POST" style="display:inline;">
+                <input type="hidden" name="status" value="UNDER_REVIEW">
+                <button type="submit" class="btn btn-review">
+                    <span th:text="${isAdmin ? 'Mark Under Review' : 'Propose: Under Review'}"></span>
+                </button>
+            </form>
+            <form th:action="@{/reports/{id}/status(id=${report.id})}" method="POST" style="display:inline;">
+                <input type="hidden" name="status" value="RESOLVED">
+                <button type="submit" class="btn btn-resolve">
+                    <span th:text="${isAdmin ? 'Mark Resolved' : 'Propose: Resolved'}"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- COMMENTS                                                     -->
+        <!-- ============================================================ -->
         <div class="comment-box">
             <h4>Comments / Notes</h4>
-            <div th:each="comment : ${comments}" class="comment">
-                <p><strong th:text="${comment.author.userName}"></strong> <em th:text="${comment.createdAt}"></em></p>
+            <div th:each="comment : ${comments}" th:class="${comment.approved ? 'comment' : 'comment pending'}">
+                <p>
+                    <strong th:text="${comment.author != null ? comment.author.userName : 'Unknown'}"></strong>
+                    <em th:text="${comment.createdAt}"></em>
+                    <!-- Pending badge for unapproved teacher comments -->
+                    <span th:if="${!comment.approved}" class="badge badge-pending">Awaiting Admin Approval</span>
+                    <span th:if="${comment.approved}" class="badge badge-approved">Approved</span>
+                </p>
                 <p th:text="${comment.comment}"></p>
+
+                <!-- Admin: approve unapproved teacher comments inline -->
+                <form th:if="${isAdmin and !comment.approved}"
+                      th:action="@{/reports/{id}/approveComment/{cid}(id=${report.id}, cid=${comment.id})}"
+                      method="POST" style="margin-top:5px;">
+                    <button type="submit" class="btn btn-approve" style="padding:5px 10px; font-size:0.85em;">
+                        <i class="fa fa-check"></i> Approve Comment
+                    </button>
+                </form>
             </div>
+
             <form th:action="@{/reports/{id}/comment(id=${report.id})}" method="POST">
                 <div class="form-group">
-                    <textarea name="comment" rows="3" style="width:100%;" placeholder="Add a comment..."></textarea>
+                    <textarea name="comment" rows="3" style="width:100%;"
+                        placeholder="Add internal teacher / admin note..."></textarea>
                 </div>
-                <button type="submit" class="btn btn-comment">Add Comment</button>
+                <button type="submit" class="btn btn-comment">Add Note</button>
+                <em style="font-size:0.85em; color:#6c757d; display:block; margin-top:5px;">
+                    <i class="fa fa-lock"></i> Internal staff notes are strictly visible on teacher and admin boards only (not visible to students).
+                </em>
             </form>
         </div>
         <br>

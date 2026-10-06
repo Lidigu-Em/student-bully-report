@@ -1,18 +1,12 @@
 <!DOCTYPE html>
-<html lang="eng" xlmns:th="http://www.thymeleaf.org">
+<html lang="eng" xmlns:th="http://www.thymeleaf.org">
 
 <head>
 	<title>Admin Panel</title>
-
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-
 	<link rel="stylesheet" th:href="@{/css/navbar.css}">
-
 	<link rel="stylesheet" th:href="@{/css/admin/admin-panel.css}">
-
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
 </head>
 
 <body>
@@ -39,25 +33,19 @@
 			<li><a th:href="@{/admin/adminPanel}"><i class="fa fa-home fa-navbar"></i><span>Dashboard</span></a></li>
 			<li><a th:href="@{/admin/courses}"><i class="fa fa-pencil fa-navbar"></i><span>Courses</span></a></li>
 			<li><a th:href="@{/admin/students}"><i class="fa fa-user fa-navbar"></i><span>Students</span></a></li>
-			<li><a th:href="@{/admin/teachers}"><i class="fa fa-user-secret fa-navbar"></i><span>Teachers</span></a>
-			</li>
-			<li><a th:href="@{/admin/adminPanel}"><i class="fa fa-calendar fa-navbar"></i><span>Calendar</span></a></li>
-			<li><a th:href="@{/admin/adminPanel}"><i class="fa fa-bullhorn fa-navbar"></i><span>Announcements</span></a>
-			</li>
+			<li><a th:href="@{/admin/teachers}"><i class="fa fa-user-secret fa-navbar"></i><span>Teachers</span></a></li>
+			<li><a th:href="@{/admin/addTeacher}"><i class="fa fa-user-plus fa-navbar"></i><span>Add Teacher</span></a></li>
 			<li><a th:href="@{/admin/adminInfo}"><i class="fa fa-info-circle fa-navbar"></i><span>Info</span></a></li>
-			<li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn fa-navbar"></i><span>Bullying Reports</span></a>
-			</li>
+			<li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn fa-navbar"></i><span>Bullying Reports</span></a></li>
 		</ul>
 	</div>
-
-
 
 	<div class="content">
 
 		<h3>Admin Dashboard</h3>
 
-
 		<div class="sections">
+
 			<div class="section" id="add-course">
 				<a th:href="@{/admin/addCourse}">
 					<div>Add New Course</div>
@@ -66,19 +54,31 @@
 
 			<div class="section" id="courses">
 				<a th:href="@{/admin/courses}">
-					<div>Update & Delete Courses</div>
+					<div>Update &amp; Delete Courses</div>
 				</a>
 			</div>
 
 			<div class="section" id="students">
 				<a th:href="@{/admin/students}">
-					<div>Update & Delete Students</div>
+					<div>Update &amp; Delete Students</div>
 				</a>
 			</div>
 
 			<div class="section" id="teachers">
 				<a th:href="@{/admin/teachers}">
-					<div>Update & Delete Teachers</div>
+					<div>Update &amp; Delete Teachers</div>
+				</a>
+			</div>
+
+			<div class="section" id="add-teacher">
+				<a th:href="@{/admin/addTeacher}">
+					<div>Add New Teacher</div>
+				</a>
+			</div>
+
+			<div class="section" id="reports">
+				<a th:href="@{/reports/all}">
+					<div>Bullying Reports</div>
 				</a>
 			</div>
 

@@ -66,4 +66,33 @@ public class LostFoundItemController {
         itemService.deleteItem(id);
         return "redirect:/lostfound/my";
     }
+
+    @GetMapping("/view/{id}")
+    public String viewItem(@PathVariable("id") Long id, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        LostFoundItem item = itemService.findById(id);
+        if (item == null) {
+            return "redirect:/lostfound/all";
+        }
+        User currentUser = userDao.findByUserName(auth.getName());
+        boolean isStudent = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_STUDENT"));
+        boolean isTeacher = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_TEACHER"));
+        boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        List<com.lidigu.studentManagement.entity.LostFoundComment> comments = itemService.findCommentsByItemId(id);
+        model.addAttribute("item", item);
+        model.addAttribute("comments", comments);
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("isStudent", isStudent);
+        model.addAttribute("isTeacher", isTeacher);
+        model.addAttribute("isAdmin", isAdmin);
+        return "admin/lost-found-details";
+    }
+
+    @PostMapping("/{id}/comment")
+    public String addComment(@PathVariable("id") Long id, @RequestParam("comment") String comment) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        itemService.addComment(id, comment, auth.getName());
+        return "redirect:/lostfound/view/" + id;
+    }
 }

@@ -62,16 +62,15 @@
 
     <div class="vertical-navbar">
         <ul>
-            <li><a
-                    th:href="${session.user.role.name == 'ROLE_ADMIN' ? '/admin/adminPanel' : '/teacher/' + session.user.id + '/courses'}"><i
-                        class="fa fa-home"></i><span>Dashboard</span></a></li>
+            <li><a th:href="${session.user != null ? '/teacher/' + session.user.id + '/courses' : '/admin/adminPanel'}">
+                <i class="fa fa-home"></i><span>Dashboard</span></a></li>
             <li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn"></i><span>Bullying Reports</span></a></li>
-            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost & Found Items</span></a></li>
+            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search"></i><span>Lost &amp; Found Items</span></a></li>
         </ul>
     </div>
 
     <div class="container">
-        <h3>Manage All Lost & Found Reports</h3>
+        <h3>Manage All Lost &amp; Found Reports</h3>
         <hr>
 
         <table>
@@ -83,6 +82,7 @@
                     <th>Reported By</th>
                     <th>Date Reported</th>
                     <th>Status</th>
+                    <th>Location</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -91,10 +91,10 @@
                     <td th:text="${item.type}" th:class="${item.type == 'LOST' ? 'type-lost' : 'type-found'}"></td>
                     <td th:text="${item.itemName}"></td>
                     <td th:text="${item.category}"></td>
-                    <td th:text="${item.reportedBy.userName}"></td>
+                    <td th:text="${item.reportedBy != null ? item.reportedBy.userName : 'Unknown'}"></td>
                     <td th:text="${item.dateReported}"></td>
                     <td>
-                        <form th:action="@{/lostfound/updateStatus}" method="POST">
+                        <form th:action="@{/lostfound/updateStatus}" method="POST" style="display: inline-block;">
                             <input type="hidden" name="id" th:value="${item.id}">
                             <select name="status">
                                 <option value="PENDING" th:selected="${item.status == 'PENDING'}">PENDING</option>
@@ -104,9 +104,12 @@
                             <button type="submit" class="btn-update">Update</button>
                         </form>
                     </td>
+                    <td th:text="${item.location}"></td>
                     <td>
-                        <!-- Add details view if needed later -->
-                        <span th:text="${item.location}"></span>
+                        <a th:href="@{/lostfound/view/{id}(id=${item.id})}"
+                           style="background-color: #007bff; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
+                            <i class="fa fa-comments"></i> Details &amp; Notes
+                        </a>
                     </td>
                 </tr>
             </tbody>

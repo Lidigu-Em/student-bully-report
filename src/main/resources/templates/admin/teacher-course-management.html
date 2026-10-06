@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Manage Teacher Courses</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/admin/admin-panel.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            padding: 20px;
+            max-width: 900px;
+            margin-left: 200px;
+        }
+
+        .card {
+            background: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-assign {
+            background-color: #28a745;
+        }
+
+        .btn-edit {
+            background-color: #ff9800;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+
+        .btn-back {
+            background-color: #555;
+            margin-bottom: 15px;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            min-width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <i class="fa fa-mortar-board"></i>
+        <h1>STUDENT MANAGEMENT SYSTEM</h1>
+        <ul>
+            <li>
+                <a><i class="fa fa-user-circle"></i>Admin</a>
+                <ul class="dropdown">
+                    <li>
+                        <form action="#" th:action="@{/logout}" method="POST">
+                            <input type="submit" value="Logout">
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="vertical-navbar">
+        <ul>
+            <li><a th:href="@{/admin/adminPanel}"><i class="fa fa-home fa-navbar"></i><span>Dashboard</span></a></li>
+            <li><a th:href="@{/admin/courses}"><i class="fa fa-pencil fa-navbar"></i><span>Courses</span></a></li>
+            <li><a th:href="@{/admin/students}"><i class="fa fa-user fa-navbar"></i><span>Students</span></a></li>
+            <li><a th:href="@{/admin/teachers}"><i class="fa fa-user-secret fa-navbar"></i><span>Teachers</span></a></li>
+            <li><a th:href="@{/reports/all}"><i class="fa fa-bullhorn fa-navbar"></i><span>Bullying Reports</span></a></li>
+            <li><a th:href="@{/lostfound/all}"><i class="fa fa-search fa-navbar"></i><span>Lost &amp; Found Items</span></a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <a th:href="@{/admin/teachers}" class="btn btn-back">
+            <i class="fa fa-arrow-left"></i> Back to Teacher List
+        </a>
+
+        <h3>
+            <i class="fa fa-graduation-cap"></i>
+            Course Allocation for:
+            <span th:text="${teacher.firstName + ' ' + teacher.lastName + ' (' + teacher.userName + ')'}"></span>
+        </h3>
+        <p style="color: #666;">Email: <strong th:text="${teacher.email}"></strong></p>
+        <hr>
+
+        <!-- Section 1: Assigned Courses -->
+        <div class="card">
+            <h4><i class="fa fa-list"></i> Currently Assigned Courses</h4>
+
+            <div th:if="${assignedCourses == null or assignedCourses.isEmpty()}" style="color: #777; margin-top: 10px;">
+                No courses are currently assigned to this teacher.
+            </div>
+
+            <table th:if="${assignedCourses != null and !assignedCourses.isEmpty()}">
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Course Name</th>
+                        <th>Enrolled Students</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="course : ${assignedCourses}">
+                        <td th:text="${course.code}"></td>
+                        <td th:text="${course.name}"></td>
+                        <td th:text="${course.students != null ? course.students.size() : 0}"></td>
+                        <td>
+                            <a class="btn btn-edit" th:href="@{/admin/courses/edit/{courseId}(courseId=${course.id})}">
+                                <i class="fa fa-pencil"></i> Edit / Reassign
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 2: Assign Course from Available Courses -->
+        <div class="card">
+            <h4><i class="fa fa-plus-circle"></i> Assign an Existing Course</h4>
+
+            <div th:if="${availableCourses == null or availableCourses.isEmpty()}" style="color: #777; margin-top: 10px;">
+                All courses are already assigned to this teacher, or no other courses exist.
+            </div>
+
+            <form th:if="${availableCourses != null and !availableCourses.isEmpty()}"
+                  th:action="@{/admin/teachers/{teacherId}/assignCourse(teacherId=${teacher.id})}"
+                  method="POST" style="margin-top: 15px; display: flex; gap: 15px; align-items: center;">
+                <label><strong>Select Course:</strong></label>
+                <select name="courseId" required>
+                    <option value="" disabled selected>-- Choose Course to Assign --</option>
+                    <option th:each="c : ${availableCourses}"
+                            th:value="${c.id}"
+                            th:text="${c.code + ' - ' + c.name + (c.teacher != null ? ' (currently with: ' + c.teacher.firstName + ' ' + c.teacher.lastName + ')' : ' (unassigned)')}">
+                    </option>
+                </select>
+                <button type="submit" class="btn btn-assign">
+                    <i class="fa fa-check"></i> Assign to This Teacher
+                </button>
+            </form>
+
+            <div style="margin-top: 20px; font-size: 0.9em;">
+                <span>Need to create a brand new course? </span>
+                <a th:href="@{/admin/addCourse}">Add New Course here</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

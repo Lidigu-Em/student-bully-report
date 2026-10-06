@@ -114,8 +114,12 @@
                     <td th:text="${item.dateReported}"></td>
                     <td th:text="${item.status}" th:class="'status-' + ${item.status}"></td>
                     <td>
+                        <a th:href="@{/lostfound/view/{id}(id=${item.id})}"
+                           style="background-color: #2196F3; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 12px; display: inline-block; margin-right: 5px;">
+                            <i class="fa fa-eye"></i> Details
+                        </a>
                         <form th:if="${item.status == 'PENDING'}" th:action="@{/lostfound/delete/{id}(id=${item.id})}"
-                            method="POST">
+                            method="POST" style="display: inline-block;">
                             <button type="submit" class="btn-rev"
                                 onclick="if (!(confirm('Are you sure you want to delete this report?'))) return false">Delete</button>
                         </form>

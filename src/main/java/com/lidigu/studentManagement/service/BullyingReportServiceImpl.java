@@ -63,6 +63,43 @@ public class BullyingReportServiceImpl implements BullyingReportService {
 
     @Override
     @Transactional
+    public void proposeStatusChange(Long reportId, String proposedStatus, String teacherUsername) {
+        BullyingReport report = reportDao.findById(reportId);
+        User teacher = userDao.findByUserName(teacherUsername);
+        if (report != null && teacher != null) {
+            report.setProposedStatus(proposedStatus);
+            report.setProposedBy(teacher);
+            report.setStatus("TEACHER_ACTION_PENDING");
+            reportDao.save(report);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void approveTeacherAction(Long reportId) {
+        BullyingReport report = reportDao.findById(reportId);
+        if (report != null && report.getProposedStatus() != null) {
+            report.setStatus(report.getProposedStatus());
+            report.setProposedStatus(null);
+            report.setProposedBy(null);
+            reportDao.save(report);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void rejectTeacherAction(Long reportId) {
+        BullyingReport report = reportDao.findById(reportId);
+        if (report != null) {
+            report.setStatus("UNDER_REVIEW");
+            report.setProposedStatus(null);
+            report.setProposedBy(null);
+            reportDao.save(report);
+        }
+    }
+
+    @Override
+    @Transactional
     public void addComment(Long reportId, String comment, String authorUsername) {
         BullyingReport report = reportDao.findById(reportId);
         User author = userDao.findByUserName(authorUsername);
@@ -76,6 +113,18 @@ public class BullyingReportServiceImpl implements BullyingReportService {
     @Transactional
     public List<ReportComment> findCommentsByReportId(Long reportId) {
         return reportDao.findCommentsByReportId(reportId);
+    }
+
+    @Override
+    @Transactional
+    public List<ReportComment> findApprovedCommentsByReportId(Long reportId) {
+        return reportDao.findApprovedCommentsByReportId(reportId);
+    }
+
+    @Override
+    @Transactional
+    public void approveComment(Long commentId) {
+        reportDao.approveComment(commentId);
     }
 
     @Override

@@ -63,6 +63,11 @@
             color: green;
             font-weight: bold;
         }
+
+        .status-TEACHER_ACTION_PENDING {
+            color: #d97706;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -93,17 +98,6 @@
             <p th:text="${report.description}"></p>
             <p><span class="label">Bully Details:</span></p>
             <p th:text="${report.bullyDetails}"></p>
-        </div>
-
-        <h4>Comments from Administration</h4>
-        <div th:if="${#lists.isEmpty(comments)}">
-            <p>No comments yet.</p>
-        </div>
-        <div th:each="comment : ${comments}" class="comment-box">
-            <p th:text="${comment.comment}"></p>
-            <div class="comment-meta">
-                By <span th:text="${comment.author.userName}"></span> on <span th:text="${comment.createdAt}"></span>
-            </div>
         </div>
     </div>
 </body>

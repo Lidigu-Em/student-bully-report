@@ -17,9 +17,19 @@ public interface BullyingReportService {
 
     void updateReportStatus(Long id, String status);
 
+    void proposeStatusChange(Long reportId, String proposedStatus, String teacherUsername);
+
+    void approveTeacherAction(Long reportId);
+
+    void rejectTeacherAction(Long reportId);
+
     void addComment(Long reportId, String comment, String authorUsername);
 
     List<ReportComment> findCommentsByReportId(Long reportId);
+
+    List<ReportComment> findApprovedCommentsByReportId(Long reportId);
+
+    void approveComment(Long commentId);
 
     void deleteReport(Long id);
 }

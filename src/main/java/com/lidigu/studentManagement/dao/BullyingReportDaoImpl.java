@@ -73,4 +73,22 @@ public class BullyingReportDaoImpl implements BullyingReportDao {
             session.delete(report);
         }
     }
+
+    @Override
+    public List<ReportComment> findApprovedCommentsByReportId(Long reportId) {
+        Session session = entityManager.unwrap(Session.class);
+        return session.createQuery(
+                "from ReportComment where report.id = :reportId and approved = true",
+                ReportComment.class)
+                .setParameter("reportId", reportId)
+                .getResultList();
+    }
+
+    @Override
+    public void approveComment(Long commentId) {
+        Session session = entityManager.unwrap(Session.class);
+        Query query = session.createQuery("update ReportComment set approved = true where id = :id");
+        query.setParameter("id", commentId);
+        query.executeUpdate();
+    }
 }

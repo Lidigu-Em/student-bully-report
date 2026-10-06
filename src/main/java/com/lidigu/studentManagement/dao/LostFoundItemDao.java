@@ -18,4 +18,8 @@ public interface LostFoundItemDao {
     void deleteById(Long id);
 
     void updateStatus(Long id, String status);
+
+    void addComment(com.lidigu.studentManagement.entity.LostFoundComment comment);
+
+    List<com.lidigu.studentManagement.entity.LostFoundComment> findCommentsByItemId(Long itemId);
 }
